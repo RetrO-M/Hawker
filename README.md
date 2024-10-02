@@ -1,11 +1,7 @@
 <div align=center>
  
 # Hawker
- <p>
- <img src="https://img.shields.io/github/stars/RetrO-M/Hawker?color=%2300FF00&style=for-the-badge"/> &nbsp;
- <img src="https://img.shields.io/github/forks/RetrO-M/Hawker?color=%239999FF&style=for-the-badge"/> &nbsp;
- 
-</p>
+
  OSINT Tool
  <br/><br/>
  We do not encourage anyone to harass or do other illegal things!<br/>
