@@ -14,6 +14,8 @@
  <img src="https://img.shields.io/badge/Python-FFDD00?style=for-the-badge&logo=python&logoColor=blue"/></br>
 </div>
 
+- Don't worry if there are any bugs in the tool, we will try to fix them 🔧
+
 - This OSINT tool has been created to assist cybersecurity professionals, law enforcement, and security 
 researchers in conducting legal and ethical investigations on email addresses, in compliance with applicable 
 laws. Any malicious use, such as harassment, fraud, or illegal activities, is strictly prohibited.
