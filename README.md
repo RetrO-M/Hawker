@@ -4,7 +4,7 @@
 
  OSINT Tool
  <br/><br/>
- We do not encourage anyone to harass or do other illegal things!<br/>
+ We do not encourage anyone to harass or do other illegal things<br/>
  We are not responsible for your stupidities.<br/>
 
 
