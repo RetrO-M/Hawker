@@ -25,6 +25,10 @@ laws. Any malicious use, such as harassment, fraud, or illegal activities, is st
 * linux-py: `sudo apt install python3`
 * win-py: `https://www.python.org/downloads/`
 
+## Phone
+
+- In the tool US numbers can work like `123-456-7890`, maybe in another update I will put for everyone...
+
 
 ## Commands
 ```sh
