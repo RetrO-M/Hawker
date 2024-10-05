@@ -1,0 +1,5 @@
+requests
+colorama
+beautifulsoup4
+phonenumbers
+fake-useragent
