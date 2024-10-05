@@ -25,18 +25,20 @@ laws. Any malicious use, such as harassment, fraud, or illegal activities, is st
 * linux-py: `sudo apt install python3`
 * win-py: `https://www.python.org/downloads/`
 
-- To display the commands you must type `command` or `!`
 
 ## Commands
 ```sh
   [Commands]
- - phone     | View information about a phone number 
- - email     | Show information by email
- - ip        | View information about an IP address
- - search    | View a persons social media using their username
+ - TARGET : <EMAIL, URL, PHONE>
+
+  [Example]
+ - TARGET : 123-456-7890        | View information about a phone number 
+ - TARGET : https://google.com  | Show information about a URL
+ - TARGET : 127.0.0.1           | View information about an IP address
+ - TARGET : test@gmail.com      | Show information about an email
 ```
 
-## Website 
+## Website OSINT Email
 
 | name | domain	| acount link |
 |-|-|-|
@@ -59,16 +61,11 @@ laws. Any malicious use, such as harassment, fraud, or illegal activities, is st
 git clone https://github.com/RetrO-M/Hawker
 cd Hawker
 
-Install Python3 modules 
- - pip3 install aiohttp
- - pip3 install requests
- - pip3 install beautifulsoup4
- - pip3 install prettytable
- - pip3 install fake-useragent
+Install Python modules 
+ - pip install -r requirements.txt
 
- - ./setup.sh
 Start the program
- - python3 main.py
+ - python main.py
 ```
 
 ## Educational Purposes Only
@@ -99,6 +96,4 @@ investigative purposes.
 - We encourage all users to exercise common sense and integrity when utilizing this tool. The goal of this
 tool is to promote transparency and security on the Internet, not to facilitate harmful or malicious behavior. Be aware of the      
 ethical implications of your actions and remember that cybersecurity relies on respecting and protecting others.
-
- Type “command” or “! » to display the tool commands
 ```
