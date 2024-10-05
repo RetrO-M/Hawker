@@ -29,7 +29,7 @@ laws. Any malicious use, such as harassment, fraud, or illegal activities, is st
 ## Commands
 ```sh
   [Commands]
- - TARGET : <EMAIL, URL, PHONE>
+ - TARGET : <EMAIL, URL, PHONE, IP>
 
   [Example]
  - TARGET : 123-456-7890        | View information about a phone number 
