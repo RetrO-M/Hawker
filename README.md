@@ -34,15 +34,12 @@
 
 ## Installing Hawker
 ```sh
+pipx install git+https://github.com/RetrO-M/Hawker
+```
 
-git clone https://github.com/RetrO-M/Hawker
-cd Hawker
-
-Install Python modules 
- - pip install -r requirements.txt
-
-Start the program
- - python main.py
+## Run the program
+```sh
+hawker
 ```
 
 ## Disclaimer

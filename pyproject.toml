@@ -1,0 +1,24 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "hawker"
+version = "0.1.0"
+description = "Hawker - A Python package"
+authors = [
+    { name = "Your Name", email = "your.email@example.com" }
+]
+dependencies = [
+    "colorama",
+    "requests",
+    "beautifulsoup4",
+    "phonenumbers"
+]
+requires-python = ">=3.7"
+
+[project.scripts]
+hawker = "hawker.main:main"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/hawker"] 
