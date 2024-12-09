@@ -2,3 +2,4 @@ colorama
 requests
 beautifulsoup4
 phonenumbers
+folium
