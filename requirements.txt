@@ -1,4 +1,5 @@
 colorama
-requests
+requests[socks]
 beautifulsoup4
 phonenumbers
+folium
