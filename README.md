@@ -22,6 +22,7 @@
 
 ## 📝 Contact
 Mail : `d3m3t0r_pro@protonmail.com`
+<br>
 Issues : [Github Issues](https://github.com/RetrO-M/Hawker/issues)
 
 ## 🦺 Options
