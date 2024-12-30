@@ -1,6 +1,7 @@
 from colorama                                                 import Fore, init
 from os                                                       import system
-from requests                                                 import get, Session, RequestException, head, exceptions
+from curl_cffi.requests                                       import get, Session, head, exceptions
+from curl_cffi.requests.exceptions                            import RequestException
 from re                                                       import findall
 from hashlib                                                  import md5
 from bs4                                                      import BeautifulSoup
@@ -496,7 +497,7 @@ class Hawker:
         url_with_params = url + urlencode(params)
         
         try:
-            response = get(url_with_params, headers=self.headers)
+            response = get(url_with_params, headers=self.headers, impersonate="chrome")
             response.raise_for_status()  
 
             soup = BeautifulSoup(response.text, 'html.parser')
@@ -531,7 +532,7 @@ class Hawker:
         url_with_params = url + urlencode(params)
         
         try:
-            response = get(url_with_params, headers=self.headers)
+            response = get(url_with_params, headers=self.headers, impersonate="chrome")
             response.raise_for_status()  
 
             soup = BeautifulSoup(response.text, 'html.parser')
@@ -564,7 +565,7 @@ class Hawker:
         url_with_params = url + urlencode(params)
         
         try:
-            response = get(url_with_params, headers=self.headers)
+            response = get(url_with_params, headers=self.headers, impersonate="chrome")
             response.raise_for_status()  
 
             soup = BeautifulSoup(response.text, 'html.parser')
@@ -597,7 +598,7 @@ class Hawker:
         url_with_params = url + urlencode(params)
         
         try:
-            response = get(url_with_params, headers=self.headers)
+            response = get(url_with_params, headers=self.headers, impersonate="chrome")
             response.raise_for_status()  
 
             soup = BeautifulSoup(response.text, 'html.parser')
@@ -630,7 +631,7 @@ class Hawker:
         url_with_params = url + urlencode(params)
         
         try:
-            response = get(url_with_params, headers=self.headers)
+            response = get(url_with_params, headers=self.headers, impersonate="chrome")
             response.raise_for_status()  
 
             soup = BeautifulSoup(response.text, 'html.parser')
@@ -663,7 +664,7 @@ class Hawker:
         url_with_params = url + urlencode(params)
         
         try:
-            response = get(url_with_params, headers=self.headers)
+            response = get(url_with_params, headers=self.headers, impersonate="chrome")
             response.raise_for_status()  
 
             soup = BeautifulSoup(response.text, 'html.parser')
@@ -696,7 +697,7 @@ class Hawker:
         url_with_params = url + urlencode(params)
         
         try:
-            response = get(url_with_params, headers=self.headers)
+            response = get(url_with_params, headers=self.headers, impersonate="chrome")
             response.raise_for_status()  
 
             soup = BeautifulSoup(response.text, 'html.parser')
@@ -729,7 +730,7 @@ class Hawker:
         url_with_params = url + urlencode(params)
         
         try:
-            response = get(url_with_params, headers=self.headers)
+            response = get(url_with_params, headers=self.headers, impersonate="chrome")
             response.raise_for_status()  
 
             soup = BeautifulSoup(response.text, 'html.parser')
@@ -762,7 +763,7 @@ class Hawker:
         url_with_params = url + urlencode(params)
         
         try:
-            response = get(url_with_params, headers=self.headers)
+            response = get(url_with_params, headers=self.headers, impersonate="chrome")
             response.raise_for_status()  
 
             soup = BeautifulSoup(response.text, 'html.parser')
@@ -795,7 +796,7 @@ class Hawker:
         url_with_params = url + urlencode(params)
         
         try:
-            response = get(url_with_params, headers=self.headers)
+            response = get(url_with_params, headers=self.headers, impersonate="chrome")
             response.raise_for_status()  
 
             soup = BeautifulSoup(response.text, 'html.parser')
@@ -820,7 +821,7 @@ class Hawker:
         url = f"https://www.chess.com/callback/email/available?email={email}"
         
         try:
-            response = get(url, headers=self.headers)
+            response = get(url, headers=self.headers, impersonate="chrome")
             data = response.json()
         
             if data.get('isEmailAvailable') == True:
@@ -840,7 +841,7 @@ class Hawker:
         }
 
         try:
-            response = get(url, params=params, headers=self.headers)
+            response = get(url, params=params, headers=self.headers, impersonate="chrome")
 
             if response.status_code == 200:
                 text_response = response.text
@@ -878,7 +879,7 @@ class Hawker:
                     'nojsoncallback': 1
                 }
 
-                response = get(api_url, params=params, headers=self.headers)
+                response = get(api_url, params=params, headers=self.headers, impersonate="chrome")
                 try:
                     data = response.json()
                     if 'user' in data:
@@ -895,7 +896,7 @@ class Hawker:
         url = f"https://api.github.com/search/users?q={email}+in:email"
         
         try:
-            response = get(url, headers=self.headers)
+            response = get(url, headers=self.headers, impersonate="chrome")
         
             if response.status_code == 200:
                 result = response.json()
@@ -911,7 +912,7 @@ class Hawker:
         url = f"https://en.gravatar.com/{email_hash}.json"
         
         try:
-            response = get(url, headers=self.headers)
+            response = get(url, headers=self.headers, impersonate="chrome")
 
             if response.status_code == 200:
                 data = response.json()
@@ -929,7 +930,7 @@ class Hawker:
         }
         
         try:
-            response = get("https://www.pinterest.fr/resource/EmailExistsResource/get/", params=params, headers=self.headers)
+            response = get("https://www.pinterest.fr/resource/EmailExistsResource/get/", params=params, headers=self.headers, impersonate="chrome")
         
             if response.status_code == 200:
                 data = response.json()
@@ -976,7 +977,7 @@ class Hawker:
         url = f"https://spclient.wg.spotify.com/signup/public/v1/account?validate=1&email={target}"
         
         try:
-            response = get(url, headers=self.headers)
+            response = get(url, headers=self.headers, impersonate="chrome")
 
             if response.status_code == 200:
                 responseData = response.json()
@@ -995,7 +996,7 @@ class Hawker:
         url = f"https://api.twitter.com/i/users/email_available.json?email={email}"
         
         try:
-            response = get(url, headers=self.headers)
+            response = get(url, headers=self.headers, impersonate="chrome")
             if response.status_code == 200:
                 data = response.json()
                 if not data["valid"]:
@@ -1006,7 +1007,7 @@ class Hawker:
             pass
 
     def wordpress_email(self, email):
-        response = get(f'https://public-api.wordpress.com/rest/v1.1/users/{email}/auth-options', headers=self.headers)
+        response = get(f'https://public-api.wordpress.com/rest/v1.1/users/{email}/auth-options', headers=self.headers, impersonate="chrome")
 
         if '"email_verified":true' in response.text:
             print(f'    {Fore.LIGHTGREEN_EX}[+]{Fore.LIGHTWHITE_EX} Wordpress Account Found')
@@ -1021,7 +1022,7 @@ class Hawker:
             'emails': target
         }
         try:
-            response = get("https://api.picsart.com/users/email/existence", params=params, headers=self.headers)
+            response = get("https://api.picsart.com/users/email/existence", params=params, headers=self.headers, impersonate="chrome")
             response.raise_for_status() 
             if response.json().get('status') == 'success':
                 if response.json().get('response'):
@@ -1035,7 +1036,7 @@ class Hawker:
 
     def hudsonrock_api(self, text):
         url = f"https://cavalier.hudsonrock.com/api/json/v2/osint-tools/search-by-email?email={text}"
-        response = get(url, headers=self.headers)
+        response = get(url, headers=self.headers, impersonate="chrome")
         response.raise_for_status()
         stealers_data = response.json().get('stealers', [])
 
@@ -1062,7 +1063,7 @@ class Hawker:
 
 
     def check_pastebin_dumps(self, text):
-        resp = get(f"https://psbdmp.ws/api/v3/search/{text}", headers=self.headers)
+        resp = get(f"https://psbdmp.ws/api/v3/search/{text}", headers=self.headers, impersonate="chrome")
         if resp.status_code == 200:
             try:
                 data = resp.json()  
@@ -1081,7 +1082,7 @@ class Hawker:
             tor66_url = f"https://tor66.org/search?q={text}"
             base_url = "https://tor66.org"
 
-            response = get(tor66_url, headers=self.headers, timeout=timeout)
+            response = get(tor66_url, headers=self.headers, impersonate="chrome", timeout=timeout)
             response.raise_for_status() 
 
             soup = BeautifulSoup(response.text, "html.parser")
@@ -1172,7 +1173,7 @@ class Hawker:
         url_with_params = url + urlencode(params)
         
         try:
-            response = get(url_with_params, headers=self.headers)
+            response = get(url_with_params, headers=self.headers, impersonate="chrome")
             response.raise_for_status()  
 
             soup = BeautifulSoup(response.text, 'html.parser')
@@ -1195,7 +1196,7 @@ class Hawker:
 
     def geolocation_ip(self, ip):
         url = f"https://ipwhois.app/json/{ip}"
-        respon = get(url, headers=self.headers)
+        respon = get(url, headers=self.headers, impersonate="chrome")
         if respon.status_code == 200:
             result = respon.json() 
             print(f"    {Fore.LIGHTGREEN_EX}[+]{Fore.LIGHTWHITE_EX} IP : ", result.get("ip"))
@@ -1211,7 +1212,7 @@ class Hawker:
 
     def hudsonrock_ip_api(self, text):
         url = f"https://cavalier.hudsonrock.com/api/json/v2/osint-tools/search-by-ip?ip={text}"
-        response = get(url, headers=self.headers)
+        response = get(url, headers=self.headers, impersonate="chrome")
         response.raise_for_status()
         stealers_data = response.json().get('stealers', [])
 
@@ -1249,7 +1250,7 @@ class Hawker:
         url_with_params = url + urlencode(params)
         
         try:
-            response = get(url_with_params, headers=self.headers)
+            response = get(url_with_params, headers=self.headers, impersonate="chrome")
             response.raise_for_status()  
 
             soup = BeautifulSoup(response.text, 'html.parser')
@@ -1278,7 +1279,7 @@ class Hawker:
         url = f"https://blockchain.info/rawaddr/{address}"
         
         try:
-            response = get(url, headers=self.headers)
+            response = get(url, headers=self.headers, impersonate="chrome")
             
             if response.status_code != 200:
                 print(f"    {Fore.LIGHTRED_EX}[+]{Fore.LIGHTWHITE_EX} ERROR : {response.status_code}")
@@ -1462,7 +1463,7 @@ class Hawker:
         for i in range(1, 100):
             api_endpoint = f"{url}/wp-json/wp/v2/users/{i}"
             try:
-                response = get(api_endpoint, headers=self.headers, timeout=10)
+                response = get(api_endpoint, headers=self.headers, impersonate="chrome", timeout=10)
                 if response.status_code == 200:
                     user_data = response.json()
                     print(f"    {Fore.LIGHTGREEN_EX}[+]{Fore.LIGHTWHITE_EX} Name: {user_data.get('name')}")
