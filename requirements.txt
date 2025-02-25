@@ -1,4 +1,5 @@
-colorama
-requests
+cryptography
+colorama 
+requests 
 beautifulsoup4
-urllib3
+lxml
