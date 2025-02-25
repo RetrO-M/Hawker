@@ -14,71 +14,33 @@
   <a href="https://github.com/RetrO-M/Hawker/issues">Report Bug</a>
 </p>
 
-<h4 align="center">Languages ➜</h5>
-<p align="center">
-           <img src="https://skillicons.dev/icons?i=py,linux,windows"/>
-</p>
+Hawker is an OSINT tool designed to assist law enforcement, cybersecurity professionals, and security researchers in conducting online investigations efficiently and legally by centralizing various sources of information to facilitate analysis and investigation.
 
-<br>
+## Setup
 
------------------
+### Setup Hawker
 
-- Don't worry if there are any bugs in the tool, we will try to fix them 🔧
+1. **Download** : `git clone https://github.com/RetrO-M/Hawker` & `cd Hawker`
+2. **Hawker** : `python3 main.py`
 
-- This OSINT tool has been created to assist cybersecurity professionals, law enforcement, and security researchers in conducting legal and ethical investigations on email addresses, in compliance with applicable laws. Any malicious use, such as harassment, fraud, or illegal activities, is strictly prohibited.
+### Install modules
 
-## 📝 Contact
-Mail : `d3m3t0r_pro@protonmail.com`
-<br>
-Issues : [Github Issues](https://github.com/RetrO-M/Hawker/issues)
-
-## 💚 Thanks you
-- Thanks to chiasmodon for your free API, your OSINT is great thank you very much
-   - https://twitter.com/chiasmod0n
-   - https://t.me/Chiasmod0n
-- Thank you for your beautiful work
-
-## 🦺 Options
-<pre>
-                    ╦ ╦╔═╗╦ ╦╦╔═╔═╗╦═╗
-                    ╠═╣╠═╣║║║╠╩╗║╣ ╠╦╝
-                    ╩ ╩╩ ╩╚╩╝╩ ╩╚═╝╩╚═
-        ╔════════════════════════════════════════╗
-        ║- 01 - Email Information - - - - - - - -║
-        ║- 02 - Phone Information - - - - - - - -║
-        ║- 03 - Person Information  - - - - - - -║
-        ║- 04 - MAC Information - - - - - - - - -║
-        ║- 05 - IP Information  - - - - - - - - -║
-        ║- 06 - Bitcoin Information - - - - - - -║
-        ║- 07 - IPv6 Information  - - - - - - - -║
-        ║- 08 - Username Search - - - - - - - - -║
-        ║- 09 - Website Information - - - - - - -║
-        ╚════════════════════════════════════════╝</pre>
-
-## 🔧 Setup
 ```sh
-
-git clone https://github.com/RetrO-M/Hawker
-cd Hawker
-
-Install Python modules 
- - pip install -r requirements.txt
-
-Start the program
- - python3 main.py
+pip3 install cryptography
+pip3 install colorama 
+pip3 install requests 
+pip3 install beautifulsoup4
+pip3 install lxml
 ```
 
+`pip install -r requirements.txt`
 
-## 📜 Disclaimer
+## Disclaimer
 
-- Educational Purposes Only
-	- This OSINT tool has been created to assist cybersecurity professionals, law enforcement, and security researchers in conducting legal and ethical investigations on email addresses, in compliance with applicable laws. Any malicious use, such as harassment, fraud, or illegal activities, is strictly prohibited.
-- Important
-  - We encourage all users to exercise common sense and integrity when utilizing this tool. The goal of this tool is to promote transparency and security on the Internet, not to facilitate harmful or malicious behavior. Be aware of the ethical implications of your actions and remember that cybersecurity relies on respecting and protecting others.
+### Ethical Use Only
 
-<p align="center">
-  <br><br><br>
-    <img alt="GitHub watchers" src="https://img.shields.io/github/watchers/RetrO-M/Hawker?style=social">
-    <img alt="GitHub Repo stars" src="https://img.shields.io/github/stars/RetrO-M/Hawker?style=social">  
-    <img alt="GitHub Repo Forks" src="https://img.shields.io/github/forks/RetrO-M/Hawker?style=social">  
-</p>
+This OSINT tool has been created to assist cybersecurity professionals, law enforcement, and security researchers in conducting legal and ethical investigations on email addresses, in compliance with applicable laws. Any malicious use, such as harassment, fraud, or illegal activities, is strictly prohibited.
+
+### No Malicious Intent
+
+We encourage all users to exercise common sense and integrity when utilizing this tool. The goal of this tool is to promote transparency and security on the Internet, not to facilitate harmful or malicious behavior. Be aware of the ethical implications of your actions and remember that cybersecurity relies on respecting and protecting others.
