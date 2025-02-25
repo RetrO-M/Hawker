@@ -1,3 +1,4 @@
+cryptography
 colorama 
 requests 
 beautifulsoup4
