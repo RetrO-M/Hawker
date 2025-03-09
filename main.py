@@ -3,12 +3,15 @@ from cryptography.hazmat.primitives.ciphers                   import Cipher, alg
 from colorama                                                 import Fore, init
 from os                                                       import system, path, listdir
 from requests                                                 import get, post, Session, RequestException, exceptions
-from re                                                       import compile
-from hashlib                                                  import md5
+from re                                                       import compile, search, IGNORECASE
+from hashlib                                                  import sha1, sha256, md5
 from bs4                                                      import BeautifulSoup
 from random                                                   import choice
 from urllib.parse                                             import urlencode, urljoin, quote
 from time                                                     import sleep
+from json                                                     import dumps
+from pefile                                                   import PE   
+from datetime                                                 import datetime, UTC
 import os
 
 init()
@@ -23,7 +26,8 @@ class Hawker:
             'Comcast':          'database/Comcast',
             'Gmail':            'database/Gmail',
             'Ogusers':          'database/ogusers.com',
-            'Exploit.in':       'database/Exploit.in'
+            'Exploit.in':       'database/Exploit.in',
+            'Instagram':        'database/Instagram'
         }
         self.countries = {
             "FR": "camera/FR/camera.txt",
@@ -314,6 +318,52 @@ class Hawker:
         except Exception as e:
             pass
 
+    def mewe(self, email):
+        url = f'https://mewe.com/api/v2/auth/checkEmail?email={email}'
+        response = get(url, headers=self.headers)
+        if "Email already taken" in response.text:
+            print(f'{Fore.LIGHTGREEN_EX}[+]{Fore.LIGHTWHITE_EX} Mewe Account Found')
+        else:
+            print(f'{Fore.LIGHTRED_EX}[+]{Fore.LIGHTWHITE_EX} No Mewe Account')        
+
+    def firefox(self, email):
+        data = {
+            'email': email
+        }
+        response = post('https://api.accounts.firefox.com/v1/account/status', data=data)
+        if "true" in response.text:
+            print(f'{Fore.LIGHTGREEN_EX}[+]{Fore.LIGHTWHITE_EX} Firefox Account Found')
+        else:
+            print(f'{Fore.LIGHTRED_EX}[+]{Fore.LIGHTWHITE_EX} No Firefox Account')   
+
+    def xnxx(self, email):
+        response = get(f'https://www.xnxx.com/account/checkemail?email={email}')
+        if "This email is already in use or its owner has excluded it from our website." in response.text:
+            print(f'{Fore.LIGHTGREEN_EX}[+]{Fore.LIGHTWHITE_EX} XnXX Account Found')
+        else:
+            print(f'{Fore.LIGHTRED_EX}[+]{Fore.LIGHTWHITE_EX} No XnXX Account')   
+
+    def xvideos(self, email):
+        params = {
+            'email': email
+        }
+        response = get(f'https://www.xvideos.com/account/checkemail', params=params)
+        if "This email is already in use or its owner has excluded it from our website." in response.text:
+            print(f'{Fore.LIGHTGREEN_EX}[+]{Fore.LIGHTWHITE_EX} Xvideos Account Found')
+        else:
+            print(f'{Fore.LIGHTRED_EX}[+]{Fore.LIGHTWHITE_EX} No Xvideos Account')  
+ 
+    def Patreon(self, email):
+        data = {
+            'email': email
+        }
+        response = post('https://www.plurk.com/Users/isEmailFound', data=data)
+
+        if "True" in response.text:
+            print(f'{Fore.LIGHTGREEN_EX}[+]{Fore.LIGHTWHITE_EX} Patreon Account Found')
+        else:
+            print(f'{Fore.LIGHTRED_EX}[+]{Fore.LIGHTWHITE_EX} No Patreon Account')        
+
     def hudsonrock_api_email(self, text):
         url = f"https://cavalier.hudsonrock.com/api/json/v2/osint-tools/search-by-email?email={text}"
         response = get(url, headers=self.headers)
@@ -443,7 +493,6 @@ class Hawker:
             print(f" {Fore.LIGHTWHITE_EX}├──City :{Fore.LIGHTRED_EX} ", result.get("city"))
             print(f" {Fore.LIGHTWHITE_EX}├──Location : {Fore.LIGHTRED_EX}", f"{result.get('latitude')}, {result.get('longitude')}")
             print(f" {Fore.LIGHTWHITE_EX}├──ISP : {Fore.LIGHTRED_EX}", result.get("isp"))
-            print(f" {Fore.LIGHTWHITE_EX}├──Organization :{Fore.LIGHTRED_EX} ", result.get("org"))
             print(f" {Fore.LIGHTWHITE_EX}└──ASN : {Fore.LIGHTRED_EX}", result.get("asn"))
         else:
             print(f"    {Fore.LIGHTRED_EX}[+]{Fore.LIGHTWHITE_EX} Unable to fetch data for IP: {ip}")
@@ -806,25 +855,99 @@ class Hawker:
 
 #endregion
 
+#region PyInstaller
+
+    def get_pe_info(self, file):
+        file_path = file
+        try:
+            pe = PE(file_path)
+            print(
+                f'''{Fore.LIGHTWHITE_EX}
+    ╔══════════════════════════════════════════════════════╗
+    ║                {Fore.LIGHTRED_EX}  General information {Fore.LIGHTWHITE_EX}                ║
+    ╚══════════════════════════════════════════════════════╝
+                '''
+            )
+            print(f"{Fore.LIGHTGREEN_EX}[+]{Fore.LIGHTWHITE_EX} File Name : {path.basename(file_path)}")
+            print(f"{Fore.LIGHTGREEN_EX}[+]{Fore.LIGHTWHITE_EX} File size : {path.getsize(file_path)} octets")
+            print(f"{Fore.LIGHTGREEN_EX}[+]{Fore.LIGHTWHITE_EX} Entrypoint : 0x{pe.OPTIONAL_HEADER.AddressOfEntryPoint:X}")
+            print(f"{Fore.LIGHTGREEN_EX}[+]{Fore.LIGHTWHITE_EX} ImageBase : 0x{pe.OPTIONAL_HEADER.ImageBase:X}")
+            print(f"{Fore.LIGHTGREEN_EX}[+]{Fore.LIGHTWHITE_EX} Machine : {hex(pe.FILE_HEADER.Machine)}")
+            timestamp = pe.FILE_HEADER.TimeDateStamp
+            if timestamp > 0:
+                print(f"{Fore.LIGHTGREEN_EX}[+]{Fore.LIGHTWHITE_EX} TimeDateStamp : {datetime.fromtimestamp(timestamp, UTC)}")
+            print(
+                f'''{Fore.LIGHTWHITE_EX}
+    ╔══════════════════════════════════════════════════════╗
+    ║                    {Fore.LIGHTRED_EX}    Selections {Fore.LIGHTWHITE_EX}                   ║
+    ╚══════════════════════════════════════════════════════╝
+                '''
+            )
+            for section in pe.sections:
+                print(f"{Fore.LIGHTGREEN_EX}[+]{Fore.LIGHTWHITE_EX} {section.Name.decode().strip()} - VA: {hex(section.VirtualAddress)}, Size: {section.Misc_VirtualSize}, Entropie: {section.get_entropy()}")
+            
+            
+            print(
+                f'''{Fore.LIGHTWHITE_EX}
+    ╔══════════════════════════════════════════════════════╗
+    ║                   {Fore.LIGHTRED_EX}       DLL   {Fore.LIGHTWHITE_EX}                      ║
+    ╚══════════════════════════════════════════════════════╝
+                '''
+            )
+            for entry in pe.DIRECTORY_ENTRY_IMPORT:
+                print(f"{Fore.LIGHTGREEN_EX}[+]{Fore.LIGHTWHITE_EX} {entry.dll.decode()} : {[imp.name.decode() if imp.name else 'Ordinal' for imp in entry.imports]}")
+            
+            print(
+                f'''{Fore.LIGHTWHITE_EX}
+    ╔══════════════════════════════════════════════════════╗
+    ║                   {Fore.LIGHTRED_EX}     Version {Fore.LIGHTWHITE_EX}                      ║
+    ╚══════════════════════════════════════════════════════╝
+                '''
+            )
+            with open(file_path, "rb") as f:
+                content = f.read()
+                match = search(rb'python(\d{2,3})', content, IGNORECASE)
+                if match:
+                    print(f"{Fore.LIGHTGREEN_EX}[+]{Fore.LIGHTWHITE_EX} Version Python : Python{match.group(1).decode()}")
+            print(
+                f'''{Fore.LIGHTWHITE_EX}
+    ╔══════════════════════════════════════════════════════╗
+    ║                      {Fore.LIGHTRED_EX}   HASH {Fore.LIGHTWHITE_EX}                        ║
+    ╚══════════════════════════════════════════════════════╝
+                '''
+            )
+            with open(file_path, "rb") as f:
+                file_data = f.read()
+                print(f"{Fore.LIGHTGREEN_EX}[+]{Fore.LIGHTWHITE_EX} MD5 : {md5(file_data).hexdigest()}")
+                print(f"{Fore.LIGHTGREEN_EX}[+]{Fore.LIGHTWHITE_EX} SHA-1 : {sha1(file_data).hexdigest()}")
+                print(f"{Fore.LIGHTGREEN_EX}[+]{Fore.LIGHTWHITE_EX} SHA-256 : {sha256(file_data).hexdigest()}")
+            
+
+            pe.close()
+        except Exception as e:
+            print(f"{Fore.LIGHTRED_EX}[+]{Fore.LIGHTWHITE_EX} Error: {e}")
+
+#endregion
+
 #region Main
 def title():
     system('clear || cls')
     print(
         f'''
-{Fore.RED}██╗  ██╗ █████╗ ██╗    ██╗██╗  ██╗███████╗██████╗ 
+{Fore.LIGHTGREEN_EX}██╗  ██╗ █████╗ ██╗    ██╗██╗  ██╗███████╗██████╗ 
 {Fore.LIGHTWHITE_EX}██║  ██║██╔══██╗██║    ██║██║ ██╔╝██╔════╝██╔══██╗
-{Fore.RED}███████║███████║██║ █╗ ██║█████╔╝ █████╗  ██████╔╝
+{Fore.LIGHTCYAN_EX}███████║███████║██║ █╗ ██║█████╔╝ █████╗  ██████╔╝
 {Fore.LIGHTWHITE_EX}██╔══██║██╔══██║██║███╗██║██╔═██╗ ██╔══╝  ██╔══██╗
-{Fore.RED}██║  ██║██║  ██║╚███╔███╔╝██║  ██╗███████╗██║  ██║
+{Fore.LIGHTGREEN_EX}██║  ██║██║  ██║╚███╔███╔╝██║  ██╗███████╗██║  ██║
 {Fore.LIGHTWHITE_EX}╚═╝  ╚═╝╚═╝  ╚═╝ ╚══╝╚══╝ ╚═╝  ╚═╝╚══════╝╚═╝  ╚═╝
-I will add other options, don't worry!
-{Fore.LIGHTRED_EX}1.{Fore.LIGHTWHITE_EX} Email Information
-{Fore.LIGHTRED_EX}2.{Fore.LIGHTWHITE_EX} Phone Information
-{Fore.LIGHTRED_EX}3.{Fore.LIGHTWHITE_EX} Person Information
-{Fore.LIGHTRED_EX}4.{Fore.LIGHTWHITE_EX} IP Information
-{Fore.LIGHTRED_EX}5.{Fore.LIGHTWHITE_EX} MAC Information
-{Fore.LIGHTRED_EX}6.{Fore.LIGHTWHITE_EX} Bitcoin Information
-{Fore.LIGHTRED_EX}7.{Fore.LIGHTWHITE_EX} Cameras Information
+{Fore.LIGHTGREEN_EX}1.{Fore.LIGHTWHITE_EX} Email Information
+{Fore.LIGHTCYAN_EX}2.{Fore.LIGHTWHITE_EX} Phone Information
+{Fore.LIGHTGREEN_EX}3.{Fore.LIGHTWHITE_EX} Person Information
+{Fore.LIGHTCYAN_EX}4.{Fore.LIGHTWHITE_EX} IP Information
+{Fore.LIGHTGREEN_EX}5.{Fore.LIGHTWHITE_EX} MAC Information
+{Fore.LIGHTCYAN_EX}6.{Fore.LIGHTWHITE_EX} Bitcoin Information
+{Fore.LIGHTGREEN_EX}7.{Fore.LIGHTWHITE_EX} Cameras Information
+{Fore.LIGHTCYAN_EX}8.{Fore.LIGHTWHITE_EX} PyInstaller Information
         '''
     )
 
@@ -832,7 +955,7 @@ def main():
     while True:
         haw = Hawker()
         title()
-        command = input(f'{Fore.RED}H{Fore.LIGHTWHITE_EX}A{Fore.RED}W{Fore.LIGHTWHITE_EX}K{Fore.RED}E{Fore.LIGHTWHITE_EX}R{Fore.RED}>{Fore.LIGHTWHITE_EX} ')
+        command = input(f'{Fore.LIGHTGREEN_EX}H{Fore.LIGHTWHITE_EX}A{Fore.LIGHTCYAN_EX}W{Fore.LIGHTWHITE_EX}K{Fore.LIGHTGREEN_EX}E{Fore.LIGHTWHITE_EX}R{Fore.LIGHTCYAN_EX}>{Fore.LIGHTWHITE_EX} ')
 
         if command == "01" or command == "1":
             email = input(f"{Fore.RED}•{Fore.LIGHTWHITE_EX} Email {Fore.LIGHTRED_EX}:{Fore.LIGHTWHITE_EX} ")
@@ -861,6 +984,11 @@ def main():
             haw.check_gravatar_email(email)
             haw.check_pinterest_email(email)
             haw.bitmoji(email)
+            haw.mewe(email)
+            haw.firefox(email)
+            haw.xnxx(email)
+            haw.xvideos(email)
+            haw.Patreon(email)
 
             doxbin_results = haw.doxbin_search(email)
             if doxbin_results:
@@ -1306,7 +1434,7 @@ def main():
 
 
         elif command == "06" or command == "6":
-            bitcoin = input(f'    {Fore.LIGHTCYAN_EX}Bitcoin Address{Fore.LIGHTMAGENTA_EX} :{Fore.LIGHTWHITE_EX} ')
+            bitcoin = input(f"{Fore.RED}•{Fore.LIGHTWHITE_EX} Bitcoin {Fore.LIGHTRED_EX}:{Fore.LIGHTWHITE_EX} ")
             print(
                 f'''{Fore.LIGHTWHITE_EX}  
 ╔══════════════════════════════════════════════════════╗
@@ -1340,12 +1468,13 @@ def main():
                 )
                 for link in pastebin_results:
                     print(f"{Fore.LIGHTGREEN_EX}[+]{Fore.LIGHTWHITE_EX} PasteBin {Fore.LIGHTCYAN_EX}:{Fore.LIGHTWHITE_EX} {link}")
-
-
-
             input(f"{Fore.LIGHTWHITE_EX}[{Fore.RED}>{Fore.LIGHTWHITE_EX}] Type 'enter' to continue. . .")
         elif command == "07" or command == "7":
             haw.check_cameras()
+            input(f"{Fore.LIGHTWHITE_EX}[{Fore.RED}>{Fore.LIGHTWHITE_EX}] Type 'enter' to continue. . .")
+        elif command == "08" or command == "8":
+            file = input(f"{Fore.RED}•{Fore.LIGHTWHITE_EX} File {Fore.LIGHTRED_EX}:{Fore.LIGHTWHITE_EX} ")
+            haw.get_pe_info(file)
             input(f"{Fore.LIGHTWHITE_EX}[{Fore.RED}>{Fore.LIGHTWHITE_EX}] Type 'enter' to continue. . .")
 #endregion
 if __name__ == "__main__":
