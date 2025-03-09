@@ -3,3 +3,4 @@ colorama
 requests 
 beautifulsoup4
 lxml
+pefile
