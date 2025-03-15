@@ -26,12 +26,15 @@ Hawker is an OSINT tool designed to assist law enforcement, cybersecurity profes
 ### Install modules
 
 ```sh
-pip3 install cryptography
-pip3 install colorama 
-pip3 install requests 
-pip3 install beautifulsoup4
-pip3 install lxml
-pip3 install pefile
+pip install cryptography
+pip install colorama
+pip install requests
+pip install beautifulsoup4
+pip install pefile
+pip install user-agents
+pip install python-docx
+pip install fake-useragent
+pip install lxml
 ```
 
 `pip install -r requirements.txt`
