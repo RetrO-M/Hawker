@@ -2,16 +2,20 @@ from warnings                                                 import filterwarni
 from cryptography.hazmat.primitives.ciphers                   import Cipher, algorithms, modes
 from colorama                                                 import Fore, init
 from os                                                       import system, path, listdir
-from requests                                                 import get, post, Session, RequestException, exceptions
+from requests                                                 import get, post, Session, RequestException, exceptions, head
 from re                                                       import compile, search, IGNORECASE
 from hashlib                                                  import sha1, sha256, md5
 from bs4                                                      import BeautifulSoup
 from random                                                   import choice
-from urllib.parse                                             import urlencode, urljoin, quote
+from urllib.parse                                             import urlencode, urljoin
 from time                                                     import sleep
-from json                                                     import dumps
+from json                                                     import loads, JSONDecodeError
 from pefile                                                   import PE   
 from datetime                                                 import datetime, UTC
+from user_agents                                              import parse
+from bs4                                                      import BeautifulSoup as BSoup
+from pprint                                                   import pprint
+import docx
 import os
 
 init()
@@ -40,7 +44,6 @@ class Hawker:
             "PL": "camera/PL/camera.txt",
             "SE": "camera/SE/camera.txt"
         }
-
         self.headers = {
             "User-Agent": choice([
                 "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/98.0.4758.80 Safari/537.36",
@@ -363,6 +366,62 @@ class Hawker:
             print(f'{Fore.LIGHTGREEN_EX}[+]{Fore.LIGHTWHITE_EX} Patreon Account Found')
         else:
             print(f'{Fore.LIGHTRED_EX}[+]{Fore.LIGHTWHITE_EX} No Patreon Account')        
+
+    def Instagram(self, email):
+        from fake_useragent import UserAgent
+        ua = UserAgent()
+        try:
+            session = Session()
+            headers = {
+                'User-Agent': ua.random,
+                'Accept': '*/*',
+                'Accept-Language': 'en-US,en;q=0.5',
+                'Origin': 'https://www.instagram.com',
+                'Referer': 'https://www.instagram.com/accounts/emailsignup/',
+                'Connection': 'keep-alive',
+                'Content-Type': 'application/x-www-form-urlencoded',
+                'X-Instagram-AJAX': '1',
+            }
+
+            response = session.get("https://www.instagram.com/accounts/emailsignup/", headers=headers)
+            if response.status_code != 200:
+                return f"Error: {response.status_code}"
+
+            cookies = session.cookies.get_dict()
+            token = cookies.get('csrftoken')
+            if not token:
+                return "Error: Token Not Found."
+
+            headers["x-csrftoken"] = token
+            session.cookies.set('csrftoken', token)
+
+            sleep(3)
+
+            data = {"email": email}
+            response = session.post(
+                url="https://www.instagram.com/api/v1/web/accounts/web_create_ajax/attempt/",
+                headers=headers,
+                data=data,
+                cookies=session.cookies
+            )
+
+            if response.status_code == 200:
+                response_json = response.json()
+
+                if "errors" in response_json and "email" in response_json["errors"]:
+                    email_errors = response_json["errors"]["email"]
+                    for error in email_errors:
+                        if error.get("code") in ["email_sharing_limit", "email_is_taken"]:
+                            print(f'{Fore.LIGHTGREEN_EX}[+]{Fore.LIGHTWHITE_EX} Instagram Account Found')
+                            return True
+                print(f'{Fore.LIGHTRED_EX}[+]{Fore.LIGHTWHITE_EX} No Instagram Account')
+                return False
+
+            return f"Error: {response.status_code} - {response.text}"
+
+        except Exception as e:
+            return f"Error: {e}"
+
 
     def hudsonrock_api_email(self, text):
         url = f"https://cavalier.hudsonrock.com/api/json/v2/osint-tools/search-by-email?email={text}"
@@ -849,7 +908,7 @@ class Hawker:
                 decrypted_content = self.decrypt_file(path)
                 for line in decrypted_content.split("\n"):
                     url = line.strip()
-                    print(f"{Fore.LIGHTGREEN_EX}[+]{Fore.LIGHTWHITE_EX} (Camera {country_code}) :{Fore.LIGHTRED_EX} {url}")
+                    print(f"{Fore.LIGHTGREEN_EX}[+]{Fore.LIGHTWHITE_EX} (Camera {country_code}) :{Fore.LIGHTGREEN_EX} {url}")
             else:
                 print(f"{Fore.LIGHTRED_EX}[+]{Fore.LIGHTWHITE_EX} The file for {country_code} does not exist.")
 
@@ -927,27 +986,245 @@ class Hawker:
         except Exception as e:
             print(f"{Fore.LIGHTRED_EX}[+]{Fore.LIGHTWHITE_EX} Error: {e}")
 
+#region UserAgent Detect
+
+    def get_user_agent_info(self, user_agent: str):
+        ua = parse(user_agent)
+        info = {
+            "Browser": ua.browser.family,
+            "Browser Version": ua.browser.version_string,
+            "Operating System": ua.os.family,
+            "OS Version": ua.os.version_string,
+            "Device Type": ua.device.family,
+            "Device Brand": ua.device.brand or "Unknown",
+            "Device Model": ua.device.model or "Unknown",
+            "Mobile": "Yes" if ua.is_mobile else "No",
+            "Tablet": "Yes" if ua.is_tablet else "No",
+            "PC": "Yes" if ua.is_pc else "No",
+            "Touchscreen": "Yes" if ua.is_touch_capable else "No",
+            "Rendering Engine": "Blink" if "Chrome" in ua.browser.family else "Gecko" if "Firefox" in ua.browser.family else "Other",
+            "CPU Architecture": "64-bit" if "x86_64" in user_agent or "WOW64" in user_agent else "32-bit",
+            "Search Engine Bot": "Yes" if any(bot in user_agent.lower() for bot in ["googlebot", "bingbot", "yahoo", "bot", "crawler", "spider"]) else "No",
+            "Raw User-Agent": user_agent
+        }
+        return info
+
+#endregion
+
+#region VIN Information
+    def get_vehicle_info(self, vin):
+        url = f"https://vpic.nhtsa.dot.gov/api/vehicles/decodevin/{vin}?format=json"
+        response = get(url)
+        
+        if response.status_code == 200:
+            data = response.json()
+            results = data.get("Results", [])
+
+            make = next((entry["Value"] for entry in results if entry["Variable"] == "Make"), "N/A")
+            model = next((entry["Value"] for entry in results if entry["Variable"] == "Model"), "N/A")
+            year = next((entry["Value"] for entry in results if entry["Variable"] == "Model Year"), "N/A")
+            vehicle_type = next((entry["Value"] for entry in results if entry["Variable"] == "Vehicle Type"), "N/A")
+
+            print(f"{Fore.LIGHTGREEN_EX}[+]{Fore.LIGHTWHITE_EX} Make :", make)
+            print(f"{Fore.LIGHTGREEN_EX}[+]{Fore.LIGHTWHITE_EX} Model :", model)
+            print(f"{Fore.LIGHTGREEN_EX}[+]{Fore.LIGHTWHITE_EX} Year :", year)
+            print(f"{Fore.LIGHTGREEN_EX}[+]{Fore.LIGHTWHITE_EX} Type :", vehicle_type)
+    
+#endregion
+
+#region TikTok Information
+    def extract_video_id(self, link):
+        try:
+            if "vm.tiktok.com" in link or "vt.tiktok.com" in link:
+                resolved_url = head(link, allow_redirects=True, timeout=5).url
+                video_id = resolved_url.split("/")[5].split("?", 1)[0]
+                print(f"{Fore.LIGHTGREEN_EX}[+]{Fore.LIGHTWHITE_EX} Shortened link resolved: {Fore.LIGHTMAGENTA_EX}{video_id}{Fore.LIGHTWHITE_EX}")
+            else:
+                video_id = link.split("/")[5].split("?", 1)[0]
+                print(f"{Fore.LIGHTGREEN_EX}[+]{Fore.LIGHTWHITE_EX} Extracted video ID:{Fore.LIGHTMAGENTA_EX} {video_id}{Fore.LIGHTWHITE_EX}")
+            return video_id
+        except Exception as e:
+            print(f"{Fore.LIGHTRED_EX}[+]{Fore.LIGHTWHITE_EX} Error while extracting video ID: {e}")
+            raise
+
+    def scrape_comments(self, video_id):
+        cursor = 0
+        total_comments = 0
+        headers = {
+            'User-Agent': choice([
+                "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/98.0.4758.80 Safari/537.36",
+                "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/98.0.4758.80 Safari/537.36",
+                "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/98.0.4758.80 Safari/537.36",
+                "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:97.0) Gecko/20100101 Firefox/97.0",
+                "Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:97.0) Gecko/20100101 Firefox/97.0"
+            ]),
+            'referer': f'https://www.tiktok.com/@x/video/{video_id}',
+        }
+
+        print(f"{Fore.LIGHTGREEN_EX}[+]{Fore.LIGHTWHITE_EX} Starting comment scraping for video:{Fore.LIGHTMAGENTA_EX} {video_id}{Fore.LIGHTWHITE_EX}")
+
+        while True:
+            try:
+                response = get(
+                    f"https://www.tiktok.com/api/comment/list/"
+                    f"?aid=1988&aweme_id={video_id}&count=50&cursor={cursor}",
+                    headers=headers
+                ).json()
+
+                comments = response.get("comments", [])
+                if not comments:
+                    print(f"{Fore.LIGHTYELLOW_EX}[+]{Fore.LIGHTWHITE_EX} No more comments found.")
+                    break
+
+                for comment in comments:
+                    print(f"{Fore.LIGHTCYAN_EX}[->]{Fore.LIGHTWHITE_EX} COMMENT{Fore.LIGHTMAGENTA_EX} ->{Fore.LIGHTGREEN_EX} {comment['text']}")
+                    sleep(0.05)
+                    total_comments += 1
+
+                cursor += len(comments)
+            except Exception as e:
+                print(f"{Fore.LIGHTRED_EX}[+]{Fore.LIGHTWHITE_EX} Error during scraping: {e}")
+                break
+
+
+
+
+    def get_tiktoker(self, username: str):
+        headers = {
+            'User-Agent': choice([
+                "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/98.0.4758.80 Safari/537.36",
+                "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/98.0.4758.80 Safari/537.36",
+                "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/98.0.4758.80 Safari/537.36",
+                "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:97.0) Gecko/20100101 Firefox/97.0",
+                "Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:97.0) Gecko/20100101 Firefox/97.0"
+            ]),
+        }
+
+        tiktok_url = 'https://www.tiktok.com/@'
+
+        try:
+            response = get(tiktok_url + username, headers=headers)
+            response.raise_for_status()
+        except RequestException as e:
+            print(f"{Fore.LIGHTRED_EX}[+]{Fore.LIGHTWHITE_EX} Failed to retrieve data for {username}. Error: {e}")
+            return
+
+        soup = BSoup(response.text, 'html.parser')
+        script_tag = soup.find('script', id='__UNIVERSAL_DATA_FOR_REHYDRATION__', type='application/json')
+
+        if script_tag:
+            try:
+                json_data = loads(script_tag.string)
+                user_data = json_data['__DEFAULT_SCOPE__']['webapp.user-detail']
+                self.parse_tiktoker_data(username, user_data)
+            except JSONDecodeError as error:
+                print(f"{Fore.LIGHTRED_EX}[+]{Fore.LIGHTWHITE_EX} Error parsing JSON: {error}")
+        else:
+            print(f'{Fore.LIGHTRED_EX}[+]{Fore.LIGHTWHITE_EX} No script tag with id="__UNIVERSAL_DATA_FOR_REHYDRATION__" found.')
+
+    def parse_tiktoker_data(self, username, field: dict):
+        user_data = field["userInfo"]["user"]
+        user_stats = field["userInfo"]["stats"]
+        user_share_meta = field["shareMeta"]
+
+        profile_pic_url = user_data.get("avatarLarger", "")
+
+        print(f'{Fore.LIGHTGREEN_EX}[+]{Fore.LIGHTWHITE_EX} Profile Picture URL: {profile_pic_url}')
+        print(f'{Fore.LIGHTGREEN_EX}[+]{Fore.LIGHTWHITE_EX} Account ID:       {user_data["id"]}')
+        print(f'{Fore.LIGHTGREEN_EX}[+]{Fore.LIGHTWHITE_EX} Unique ID:        {user_data["uniqueId"]}')
+        print(f'{Fore.LIGHTGREEN_EX}[+]{Fore.LIGHTWHITE_EX} Nickname:         {user_data["nickname"]}')
+        signature = user_data["signature"].replace('\n', ' ')
+        print(f'{Fore.LIGHTGREEN_EX}[+]{Fore.LIGHTWHITE_EX} Bios:             {signature}')
+        print(f'{Fore.LIGHTGREEN_EX}[+]{Fore.LIGHTWHITE_EX} Private Account:  {user_data["privateAccount"]}')
+        print(f'{Fore.LIGHTGREEN_EX}[+]{Fore.LIGHTWHITE_EX} User Country:     {user_data["region"]}')
+        print(f'{Fore.LIGHTGREEN_EX}[+]{Fore.LIGHTWHITE_EX} Account Language: {user_data["language"]}')
+        
+        print(f'\n{Fore.LIGHTGREEN_EX}[+]{Fore.LIGHTWHITE_EX} Total Followers:  {user_stats["followerCount"]}')
+        print(f'{Fore.LIGHTGREEN_EX}[+]{Fore.LIGHTWHITE_EX} Total Following:  {user_stats["followingCount"]}')
+        print(f'{Fore.LIGHTGREEN_EX}[+]{Fore.LIGHTWHITE_EX} Total Hearts     {user_stats["heartCount"]}')
+        print(f'{Fore.LIGHTGREEN_EX}[+]{Fore.LIGHTWHITE_EX} Total Posts:      {user_stats["videoCount"]}')
+        
+        print(f'\n{Fore.LIGHTGREEN_EX}[+]{Fore.LIGHTWHITE_EX} Title:            {user_share_meta["title"]}')
+        print(f'{Fore.LIGHTGREEN_EX}[+]{Fore.LIGHTWHITE_EX} Description:      {user_share_meta["desc"]}\n')
+
+    def scrape_tiktok_video(self, video_url):
+        headers = {
+            'User-Agent': choice([
+                "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/98.0.4758.80 Safari/537.36",
+                "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/98.0.4758.80 Safari/537.36",
+                "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/98.0.4758.80 Safari/537.36",
+                "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:97.0) Gecko/20100101 Firefox/97.0",
+                "Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:97.0) Gecko/20100101 Firefox/97.0"
+            ]),
+        }
+        api_url = f"https://www.tiktok.com/oembed?url={video_url}"
+        
+        response = get(api_url, headers=headers)
+        if response.status_code == 200:
+            video_data = response.json()
+            print(f"{Fore.LIGHTGREEN_EX}[+]{Fore.LIGHTWHITE_EX} Title:", video_data.get("title"))
+            print(f"{Fore.LIGHTGREEN_EX}[+]{Fore.LIGHTWHITE_EX} Author:", video_data.get("author_name"))
+            print(f"{Fore.LIGHTGREEN_EX}[+]{Fore.LIGHTWHITE_EX} Author URL:", video_data.get("author_url"))
+            print(f"{Fore.LIGHTGREEN_EX}[+]{Fore.LIGHTWHITE_EX} Thumbnail:", video_data.get("thumbnail_url"))
+
+#endregion
+
+#region MetaData docx
+    def extract_metadata(self, docx_file):
+        doc = docx.Document(docx_file)
+        core_properties = doc.core_properties
+
+        metadata = {}
+
+        for prop in dir(core_properties):
+            if prop.startswith('__'):
+                continue
+            value = getattr(core_properties, prop)
+            if callable(value):
+                continue
+            if prop == 'created' or prop == 'modified' or prop == 'last_printed':
+                if value:
+                    value = value.strftime('%Y-%m-%d %H:%M:%S')
+                else:
+                    value = None
+            metadata[prop] = value  
+
+        try:
+            custom_properties = core_properties.custom_properties
+            if custom_properties:
+                metadata['custom_properties'] = {}
+                for prop in custom_properties:
+                    metadata['custom_properties'][prop.name] = prop.value
+        except AttributeError:
+            pass
+        return metadata
 #endregion
 
 #region Main
 def title():
     system('clear || cls')
     print(
-        f'''
-{Fore.LIGHTGREEN_EX}██╗  ██╗ █████╗ ██╗    ██╗██╗  ██╗███████╗██████╗ 
-{Fore.LIGHTWHITE_EX}██║  ██║██╔══██╗██║    ██║██║ ██╔╝██╔════╝██╔══██╗
-{Fore.LIGHTCYAN_EX}███████║███████║██║ █╗ ██║█████╔╝ █████╗  ██████╔╝
-{Fore.LIGHTWHITE_EX}██╔══██║██╔══██║██║███╗██║██╔═██╗ ██╔══╝  ██╔══██╗
-{Fore.LIGHTGREEN_EX}██║  ██║██║  ██║╚███╔███╔╝██║  ██╗███████╗██║  ██║
-{Fore.LIGHTWHITE_EX}╚═╝  ╚═╝╚═╝  ╚═╝ ╚══╝╚══╝ ╚═╝  ╚═╝╚══════╝╚═╝  ╚═╝
-{Fore.LIGHTGREEN_EX}1.{Fore.LIGHTWHITE_EX} Email Information
-{Fore.LIGHTCYAN_EX}2.{Fore.LIGHTWHITE_EX} Phone Information
-{Fore.LIGHTGREEN_EX}3.{Fore.LIGHTWHITE_EX} Person Information
-{Fore.LIGHTCYAN_EX}4.{Fore.LIGHTWHITE_EX} IP Information
-{Fore.LIGHTGREEN_EX}5.{Fore.LIGHTWHITE_EX} MAC Information
+        f'''{Fore.LIGHTWHITE_EX}
+            ⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⢀⣀⣤⣤⣤⣤⣴⣤⣤⣄⡀⠀⠀⠀⠀⠀⠀⠀⠀⠀
+            ⠀⠀⠀⠀⠀⠀⠀⣀⣴⣾⠿⠛⠋⠉⠁⠀⠀⠀⠈⠙⠻⢷⣦⡀⠀⠀⠀⠀⠀⠀
+            ⠀⠀⠀⠀⠀⣤⣾⡿⠋⠁⠀{Fore.LIGHTCYAN_EX}⣠⣶⣿⡿⢿⣷⣦⡀⠀{Fore.LIGHTWHITE_EX}⠀⠀⠙⠿⣦⣀⠀⠀⠀⠀
+            ⠀⠀⢀⣴⣿⡿⠋⠀⠀{Fore.LIGHTCYAN_EX}⢀⣼⣿⣿⣿⣶⣿⣾⣽⣿⡆{Fore.LIGHTWHITE_EX}⠀⠀⠀⠀⢻⣿⣷⣶⣄⠀
+            ⠀⣴⣿⣿⠋⠀⠀⠀⠀{Fore.LIGHTCYAN_EX}⠸⣿⣿⣿⣿⣯⣿⣿⣿⣿⣿⠀{Fore.LIGHTWHITE_EX}⠀⠀⠐⡄⡌⢻⣿⣿⡷
+            ⢸⣿⣿⠃⢂⡋⠄⠀⠀⠀{Fore.LIGHTCYAN_EX}⢿⣿⣿⣿⣿⣿⣯⣿⣿⠏⠀{Fore.LIGHTWHITE_EX}⠀⠀⠀⢦⣷⣿⠿⠛⠁
+            ⠀⠙⠿⢾⣤⡈⠙⠂⢤⢀⠀{Fore.LIGHTCYAN_EX}⠙⠿⢿⣿⣿⡿⠟⠁{Fore.LIGHTWHITE_EX}⠀⣀⣀⣤⣶⠟⠋⠁⠀⠀⠀
+            ⠀⠀⠀⠀⠈⠙⠿⣾⣠⣆⣅⣀⣠⣄⣤⣴⣶⣾⣽⢿⠿⠟⠋⠀⠀⠀⠀⠀⠀⠀
+            ⠀⠀⠀⠀⠀⠀⠀⠀⠀⠉⠙⠛⠛⠙⠋⠉⠉⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀
+
+{Fore.LIGHTCYAN_EX}1.{Fore.LIGHTWHITE_EX} Email Information            {Fore.LIGHTCYAN_EX}11.{Fore.LIGHTWHITE_EX} TikTok Comment Scraper
+{Fore.LIGHTCYAN_EX}2.{Fore.LIGHTWHITE_EX} Phone Information            {Fore.LIGHTCYAN_EX}12.{Fore.LIGHTWHITE_EX} Tiktok Profile Scraper
+{Fore.LIGHTCYAN_EX}3.{Fore.LIGHTWHITE_EX} Person Information           {Fore.LIGHTCYAN_EX}13.{Fore.LIGHTWHITE_EX} Tiktok Video Scraper
+{Fore.LIGHTCYAN_EX}4.{Fore.LIGHTWHITE_EX} IP Information               {Fore.LIGHTCYAN_EX}14.{Fore.LIGHTWHITE_EX} MetaData docx Information
+{Fore.LIGHTCYAN_EX}5.{Fore.LIGHTWHITE_EX} MAC Information              
 {Fore.LIGHTCYAN_EX}6.{Fore.LIGHTWHITE_EX} Bitcoin Information
-{Fore.LIGHTGREEN_EX}7.{Fore.LIGHTWHITE_EX} Cameras Information
+{Fore.LIGHTCYAN_EX}7.{Fore.LIGHTWHITE_EX} Cameras Information
 {Fore.LIGHTCYAN_EX}8.{Fore.LIGHTWHITE_EX} PyInstaller Information
+{Fore.LIGHTCYAN_EX}9.{Fore.LIGHTWHITE_EX} User-Agent Information
+{Fore.LIGHTCYAN_EX}10.{Fore.LIGHTWHITE_EX} VIN Information
         '''
     )
 
@@ -955,7 +1232,7 @@ def main():
     while True:
         haw = Hawker()
         title()
-        command = input(f'{Fore.LIGHTGREEN_EX}H{Fore.LIGHTWHITE_EX}A{Fore.LIGHTCYAN_EX}W{Fore.LIGHTWHITE_EX}K{Fore.LIGHTGREEN_EX}E{Fore.LIGHTWHITE_EX}R{Fore.LIGHTCYAN_EX}>{Fore.LIGHTWHITE_EX} ')
+        command = input(f'{Fore.LIGHTCYAN_EX}HAWKER>{Fore.LIGHTWHITE_EX} ')
 
         if command == "01" or command == "1":
             email = input(f"{Fore.RED}•{Fore.LIGHTWHITE_EX} Email {Fore.LIGHTRED_EX}:{Fore.LIGHTWHITE_EX} ")
@@ -989,6 +1266,7 @@ def main():
             haw.xnxx(email)
             haw.xvideos(email)
             haw.Patreon(email)
+            haw.Instagram(email)
 
             doxbin_results = haw.doxbin_search(email)
             if doxbin_results:
@@ -1475,6 +1753,35 @@ def main():
         elif command == "08" or command == "8":
             file = input(f"{Fore.RED}•{Fore.LIGHTWHITE_EX} File {Fore.LIGHTRED_EX}:{Fore.LIGHTWHITE_EX} ")
             haw.get_pe_info(file)
+            input(f"{Fore.LIGHTWHITE_EX}[{Fore.RED}>{Fore.LIGHTWHITE_EX}] Type 'enter' to continue. . .")
+        elif command == "09" or command == "9":
+            user_agent = input(f"{Fore.RED}•{Fore.LIGHTWHITE_EX} User Agent {Fore.LIGHTRED_EX}:{Fore.LIGHTWHITE_EX} ")
+            infos = haw.get_user_agent_info(user_agent)
+            for key, value in infos.items():
+                print(f"{Fore.LIGHTGREEN_EX}[+]{Fore.LIGHTWHITE_EX} {key}: {value}")
+            input(f"{Fore.LIGHTWHITE_EX}[{Fore.RED}>{Fore.LIGHTWHITE_EX}] Type 'enter' to continue. . .")
+        elif command == "10":
+            vin_number = input(f"{Fore.RED}•{Fore.LIGHTWHITE_EX} VIN {Fore.LIGHTRED_EX}:{Fore.LIGHTWHITE_EX} ")
+            haw.get_vehicle_info(vin_number)
+            input(f"{Fore.LIGHTWHITE_EX}[{Fore.RED}>{Fore.LIGHTWHITE_EX}] Type 'enter' to continue. . .")
+        elif command == "11":
+            video_url = input(f'{Fore.RED}•{Fore.LIGHTWHITE_EX} Enter the TikTok link {Fore.LIGHTRED_EX}:{Fore.LIGHTWHITE_EX} ').strip()
+            video_id = haw.extract_video_id(video_url)
+            haw.scrape_comments(video_id)
+            input(f"{Fore.LIGHTWHITE_EX}[{Fore.RED}>{Fore.LIGHTWHITE_EX}] Type 'enter' to continue. . .")
+        elif command == "12":
+            username = input(f'{Fore.RED}•{Fore.LIGHTWHITE_EX} Tiktok usernamz (without "@") {Fore.LIGHTRED_EX}:{Fore.LIGHTWHITE_EX} ')
+            if username:
+                haw.get_tiktoker(username)
+            input(f"{Fore.LIGHTWHITE_EX}[{Fore.RED}>{Fore.LIGHTWHITE_EX}] Type 'enter' to continue. . .")
+        elif command == "13":
+            video_url = input(f'{Fore.RED}•{Fore.LIGHTWHITE_EX} Enter the TikTok link {Fore.LIGHTRED_EX}:{Fore.LIGHTWHITE_EX} ')
+            haw.scrape_tiktok_video(video_url)
+            input(f"{Fore.LIGHTWHITE_EX}[{Fore.RED}>{Fore.LIGHTWHITE_EX}] Type 'enter' to continue. . .")
+        elif command == "14":
+            docx_path = input(f'{Fore.RED}•{Fore.LIGHTWHITE_EX} Docx File {Fore.LIGHTRED_EX}:{Fore.LIGHTWHITE_EX} ')
+            metadata = haw.extract_metadata(docx_path)
+            pprint(metadata) 
             input(f"{Fore.LIGHTWHITE_EX}[{Fore.RED}>{Fore.LIGHTWHITE_EX}] Type 'enter' to continue. . .")
 #endregion
 if __name__ == "__main__":
