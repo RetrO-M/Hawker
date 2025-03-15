@@ -1,6 +1,9 @@
 cryptography
-colorama 
-requests 
+colorama
+requests
 beautifulsoup4
-lxml
 pefile
+user-agents
+python-docx
+fake-useragent
+lxml
