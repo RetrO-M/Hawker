@@ -11,7 +11,8 @@
 <p align='center'>
   <b>👁 Hawker 👁</b><br>  
   <a href="https://github.com/RetrO-M">Github</a> |
-  <a href="https://github.com/RetrO-M/Hawker/issues">Report Bug</a>
+  <a href="https://github.com/RetrO-M/Hawker/issues">Report Bug</a> |
+  <a href="https://x.com/DeAn0nim0us">Twitter</a>
 </p>
 
 Hawker is an OSINT tool designed to assist law enforcement, cybersecurity professionals, and security researchers in conducting online investigations efficiently and legally by centralizing various sources of information to facilitate analysis and investigation.
