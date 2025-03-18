@@ -49,3 +49,6 @@ This OSINT tool has been created to assist cybersecurity professionals, law enfo
 ### No Malicious Intent
 
 We encourage all users to exercise common sense and integrity when utilizing this tool. The goal of this tool is to promote transparency and security on the Internet, not to facilitate harmful or malicious behavior. Be aware of the ethical implications of your actions and remember that cybersecurity relies on respecting and protecting others.
+
+## Donate
+**Monero** : `455RrwkuryVRioADddHWfGXrWHSLk4n1DHX36E4tKkBHScps4CeFwMWVemyqgWkL5eYf5L2zRVkgQB4Y9dwaechDKqQzC7p`
