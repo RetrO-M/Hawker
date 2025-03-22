@@ -7,3 +7,4 @@ user-agents
 python-docx
 fake-useragent
 lxml
+python-docx
