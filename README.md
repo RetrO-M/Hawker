@@ -39,6 +39,7 @@ pip install user-agents
 pip install python-docx
 pip install fake-useragent
 pip install lxml
+pip install python-docx
 ```
 
 `pip install -r requirements.txt`
