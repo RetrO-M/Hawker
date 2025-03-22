@@ -59,6 +59,7 @@ class Hawker:
         self.KEY = b"0123456789abcdef"
 
 #region Email Information 
+
     def decrypt_file(self, file_path):
         with open(file_path, "rb") as file:
             iv = file.read(16)
@@ -69,10 +70,9 @@ class Hawker:
 
         return decrypted_data.rstrip(decrypted_data[-1:]).decode("utf-8", errors="ignore")
 
-    def mask_password(self, password):
-        if len(password) > 2:
-            return password[0] + "*" * (len(password) - 2) + password[-1]
-        return "*" * len(password)
+    def hash_password(self, password):
+        sha256_hash = sha256(password.encode('utf-8')).hexdigest()
+        return sha256_hash
 
     def search_database(self, email):
         found = False
@@ -91,12 +91,10 @@ class Hawker:
                         for line in decrypted_content.split("\n"):
                             if line.startswith(email + ":"):
                                 password = line.split(":", 1)[1].strip()
-                                masked_password = self.mask_password(password)
-                                print(f"{Fore.LIGHTWHITE_EX}[{Fore.LIGHTYELLOW_EX}!{Fore.LIGHTWHITE_EX}] Compromised password {folder_name}: {Fore.LIGHTCYAN_EX}{masked_password}")
+                                hashed_password = self.hash_password(password)
+                                print(f"{Fore.LIGHTWHITE_EX}[{Fore.LIGHTYELLOW_EX}!{Fore.LIGHTWHITE_EX}] {folder_name}: {Fore.LIGHTCYAN_EX}{hashed_password}")
                     except Exception:
                         continue
-    
-
 
     def check_chess_email(self, email):
         url = f"https://www.chess.com/callback/email/available?email={email}"
@@ -1200,6 +1198,42 @@ class Hawker:
         return metadata
 #endregion
 
+#region PDF information
+    def extract_pdf_metadata(self, pdf_path):
+        with open(pdf_path, "rb") as file:
+            content = file.read().decode(errors='ignore')
+            
+            patterns = {
+                "Creator": r"/Creator \((.*?)\)",
+                "Producer": r"/Producer \((.*?)\)",
+                "CreationDate": r"/CreationDate \((.*?)\)",
+                "ModDate": r"/ModDate \((.*?)\)",
+                "Keywords": r"/Keywords \((.*?)\)",
+                "Author": r"/Author \((.*?)\)",
+                "Marked": r"/Marked (true|false)",
+                "Suspects": r"/Suspects (true|false)",
+                "DisplayDocTitle": r"/DisplayDocTitle (true|false)",
+                "Count": r"/Count (\d+)",
+                "PDF Version": r"%PDF-(\d+\.\d+)",
+                "Lang": r"/Lang \((.*?)\)",
+                "Width": r"/Width (\d+)",
+                "Height": r"/Height (\d+)",
+                "Title": r"/Title <([0-9A-Fa-f]+)>"
+            }
+            
+            results = {}
+            for key, pattern in patterns.items():
+                match = search(pattern, content)
+                if match:
+                    results[key] = match.group(1)
+            
+            if results:
+                for key, value in results.items():
+                    print(f"{Fore.LIGHTGREEN_EX}[+]{Fore.LIGHTWHITE_EX} {key}: {value}")
+            else:
+                print(f"{Fore.LIGHTRED_EX}[+]{Fore.LIGHTWHITE_EX} No MetaData")
+#endregion
+
 #region Main
 def title():
     system('clear || cls')
@@ -1207,24 +1241,25 @@ def title():
         f'''{Fore.LIGHTWHITE_EX}
             ⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⢀⣀⣤⣤⣤⣤⣴⣤⣤⣄⡀⠀⠀⠀⠀⠀⠀⠀⠀⠀
             ⠀⠀⠀⠀⠀⠀⠀⣀⣴⣾⠿⠛⠋⠉⠁⠀⠀⠀⠈⠙⠻⢷⣦⡀⠀⠀⠀⠀⠀⠀
-            ⠀⠀⠀⠀⠀⣤⣾⡿⠋⠁⠀{Fore.LIGHTCYAN_EX}⣠⣶⣿⡿⢿⣷⣦⡀⠀{Fore.LIGHTWHITE_EX}⠀⠀⠙⠿⣦⣀⠀⠀⠀⠀
-            ⠀⠀⢀⣴⣿⡿⠋⠀⠀{Fore.LIGHTCYAN_EX}⢀⣼⣿⣿⣿⣶⣿⣾⣽⣿⡆{Fore.LIGHTWHITE_EX}⠀⠀⠀⠀⢻⣿⣷⣶⣄⠀
-            ⠀⣴⣿⣿⠋⠀⠀⠀⠀{Fore.LIGHTCYAN_EX}⠸⣿⣿⣿⣿⣯⣿⣿⣿⣿⣿⠀{Fore.LIGHTWHITE_EX}⠀⠀⠐⡄⡌⢻⣿⣿⡷
-            ⢸⣿⣿⠃⢂⡋⠄⠀⠀⠀{Fore.LIGHTCYAN_EX}⢿⣿⣿⣿⣿⣿⣯⣿⣿⠏⠀{Fore.LIGHTWHITE_EX}⠀⠀⠀⢦⣷⣿⠿⠛⠁
-            ⠀⠙⠿⢾⣤⡈⠙⠂⢤⢀⠀{Fore.LIGHTCYAN_EX}⠙⠿⢿⣿⣿⡿⠟⠁{Fore.LIGHTWHITE_EX}⠀⣀⣀⣤⣶⠟⠋⠁⠀⠀⠀
+            ⠀⠀⠀⠀⠀⣤⣾⡿⠋⠁⠀{Fore.LIGHTRED_EX}⣠⣶⣿⡿⢿⣷⣦⡀⠀{Fore.LIGHTWHITE_EX}⠀⠀⠙⠿⣦⣀⠀⠀⠀⠀
+            ⠀⠀⢀⣴⣿⡿⠋⠀⠀{Fore.LIGHTRED_EX}⢀⣼⣿⣿⣿⣶⣿⣾⣽⣿⡆{Fore.LIGHTWHITE_EX}⠀⠀⠀⠀⢻⣿⣷⣶⣄⠀
+            ⠀⣴⣿⣿⠋⠀⠀⠀⠀{Fore.LIGHTRED_EX}⠸⣿⣿⣿⣿⣯⣿⣿⣿⣿⣿⠀{Fore.LIGHTWHITE_EX}⠀⠀⠐⡄⡌⢻⣿⣿⡷
+            ⢸⣿⣿⠃⢂⡋⠄⠀⠀⠀{Fore.LIGHTRED_EX}⢿⣿⣿⣿⣿⣿⣯⣿⣿⠏⠀{Fore.LIGHTWHITE_EX}⠀⠀⠀⢦⣷⣿⠿⠛⠁
+            ⠀⠙⠿⢾⣤⡈⠙⠂⢤⢀⠀{Fore.LIGHTRED_EX}⠙⠿⢿⣿⣿⡿⠟⠁{Fore.LIGHTWHITE_EX}⠀⣀⣀⣤⣶⠟⠋⠁⠀⠀⠀
             ⠀⠀⠀⠀⠈⠙⠿⣾⣠⣆⣅⣀⣠⣄⣤⣴⣶⣾⣽⢿⠿⠟⠋⠀⠀⠀⠀⠀⠀⠀
             ⠀⠀⠀⠀⠀⠀⠀⠀⠀⠉⠙⠛⠛⠙⠋⠉⠉⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀
+Monero : 455RrwkuryVRioADddHWfGXrWHSLk4n1DHX36E4tKkBHScps4CeFwMWVemyqgWkL5eYf5L2zRVkgQB4Y9dwaechDKqQzC7p
 
-{Fore.LIGHTCYAN_EX}1.{Fore.LIGHTWHITE_EX} Email Information            {Fore.LIGHTCYAN_EX}11.{Fore.LIGHTWHITE_EX} TikTok Comment Scraper
-{Fore.LIGHTCYAN_EX}2.{Fore.LIGHTWHITE_EX} Phone Information            {Fore.LIGHTCYAN_EX}12.{Fore.LIGHTWHITE_EX} Tiktok Profile Scraper
-{Fore.LIGHTCYAN_EX}3.{Fore.LIGHTWHITE_EX} Person Information           {Fore.LIGHTCYAN_EX}13.{Fore.LIGHTWHITE_EX} Tiktok Video Scraper
-{Fore.LIGHTCYAN_EX}4.{Fore.LIGHTWHITE_EX} IP Information               {Fore.LIGHTCYAN_EX}14.{Fore.LIGHTWHITE_EX} MetaData docx Information
-{Fore.LIGHTCYAN_EX}5.{Fore.LIGHTWHITE_EX} MAC Information              
-{Fore.LIGHTCYAN_EX}6.{Fore.LIGHTWHITE_EX} Bitcoin Information
-{Fore.LIGHTCYAN_EX}7.{Fore.LIGHTWHITE_EX} Cameras Information
-{Fore.LIGHTCYAN_EX}8.{Fore.LIGHTWHITE_EX} PyInstaller Information
-{Fore.LIGHTCYAN_EX}9.{Fore.LIGHTWHITE_EX} User-Agent Information
-{Fore.LIGHTCYAN_EX}10.{Fore.LIGHTWHITE_EX} VIN Information
+{Fore.LIGHTRED_EX}1.{Fore.LIGHTWHITE_EX} Email Information            {Fore.LIGHTRED_EX}11.{Fore.LIGHTWHITE_EX} TikTok Comment Scraper
+{Fore.LIGHTRED_EX}2.{Fore.LIGHTWHITE_EX} Phone Information            {Fore.LIGHTRED_EX}12.{Fore.LIGHTWHITE_EX} Tiktok Profile Scraper
+{Fore.LIGHTRED_EX}3.{Fore.LIGHTWHITE_EX} Person Information           {Fore.LIGHTRED_EX}13.{Fore.LIGHTWHITE_EX} Tiktok Video Scraper
+{Fore.LIGHTRED_EX}4.{Fore.LIGHTWHITE_EX} IP Information               {Fore.LIGHTRED_EX}14.{Fore.LIGHTWHITE_EX} MetaData docx Information
+{Fore.LIGHTRED_EX}5.{Fore.LIGHTWHITE_EX} MAC Information              {Fore.LIGHTRED_EX}15.{Fore.LIGHTWHITE_EX} PDF Information
+{Fore.LIGHTRED_EX}6.{Fore.LIGHTWHITE_EX} Bitcoin Information
+{Fore.LIGHTRED_EX}7.{Fore.LIGHTWHITE_EX} Cameras Information
+{Fore.LIGHTRED_EX}8.{Fore.LIGHTWHITE_EX} PyInstaller Information
+{Fore.LIGHTRED_EX}9.{Fore.LIGHTWHITE_EX} User-Agent Information
+{Fore.LIGHTRED_EX}10.{Fore.LIGHTWHITE_EX} VIN Information
         '''
     )
 
@@ -1232,7 +1267,7 @@ def main():
     while True:
         haw = Hawker()
         title()
-        command = input(f'{Fore.LIGHTCYAN_EX}HAWKER>{Fore.LIGHTWHITE_EX} ')
+        command = input(f'{Fore.LIGHTRED_EX}HAWKER>{Fore.LIGHTWHITE_EX} ')
 
         if command == "01" or command == "1":
             email = input(f"{Fore.RED}•{Fore.LIGHTWHITE_EX} Email {Fore.LIGHTRED_EX}:{Fore.LIGHTWHITE_EX} ")
@@ -1782,6 +1817,10 @@ def main():
             docx_path = input(f'{Fore.RED}•{Fore.LIGHTWHITE_EX} Docx File {Fore.LIGHTRED_EX}:{Fore.LIGHTWHITE_EX} ')
             metadata = haw.extract_metadata(docx_path)
             pprint(metadata) 
+            input(f"{Fore.LIGHTWHITE_EX}[{Fore.RED}>{Fore.LIGHTWHITE_EX}] Type 'enter' to continue. . .")
+        elif command == "15":
+            pdf_path = input(f'{Fore.RED}•{Fore.LIGHTWHITE_EX} PDF File {Fore.LIGHTRED_EX}:{Fore.LIGHTWHITE_EX} ')
+            haw.extract_pdf_metadata(pdf_path)
             input(f"{Fore.LIGHTWHITE_EX}[{Fore.RED}>{Fore.LIGHTWHITE_EX}] Type 'enter' to continue. . .")
 #endregion
 if __name__ == "__main__":
