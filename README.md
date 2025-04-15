@@ -149,7 +149,3 @@ We do not use your data for any purpose other than the one for which it was coll
 ### Responsibility
 
 We are committed to ensuring that the Hawker tool is used ethically and in compliance with applicable laws. We do not collect data from unauthorized breaches and encourage the use of the tool for legal and responsible purposes.
-
-## How to Contribute
-
-If you wish to contribute to this project, feel free to create a **pull request**. All contributions are welcome, but they must comply with privacy and data security standards.
