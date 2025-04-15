@@ -12,7 +12,7 @@
   <b>👁 Hawker 👁</b><br>  
   <a href="https://github.com/RetrO-M">Github</a> |
   <a href="https://github.com/RetrO-M/Hawker/issues">Report Bug</a> |
-  <a href="https://x.com/DeAn0nim0us">Twitter</a>
+  <a href="https://x.com/DeAn0nim0us">Twitter</a> |
   <a href="https://discord.gg/KRjzDPzDbx">Discord Server</a>
 </p>
 
