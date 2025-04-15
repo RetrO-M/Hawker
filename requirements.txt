@@ -2,9 +2,7 @@ cryptography
 colorama
 requests
 beautifulsoup4
-pefile
-user-agents
-python-docx
 fake-useragent
 lxml
+rich
 python-docx
