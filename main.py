@@ -928,7 +928,7 @@ def title():
        `-,,,  ,_      ;'~U'      Github → RetrO-M
         _,-' ,'`-__; '--.        Discord Hawker → https://discord.gg/KRjzDPzDbx (NEW SERVER)
        (_/'~~      """"(;
-   Do you want this version to improve, make an issue on github.
+  Want to improve this version? Join our Discord server and tell us all about it!
   {Fore.LIGHTWHITE_EX}01 {Fore.LIGHTCYAN_EX}→ Email Information
   {Fore.LIGHTWHITE_EX}02 {Fore.LIGHTCYAN_EX}→ Phone Information
   {Fore.LIGHTWHITE_EX}03 {Fore.LIGHTCYAN_EX}→ IP Information
