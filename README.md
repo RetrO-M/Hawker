@@ -11,8 +11,7 @@
 <p align='center'>
   <b>👁 Hawker 👁</b><br>  
   <a href="https://github.com/RetrO-M">Github</a> |
-  <a href="https://github.com/RetrO-M/Hawker/issues">Report Bug</a> |
-  <a href="https://discord.gg/KRjzDPzDbx">Discord Server</a>
+  <a href="https://github.com/RetrO-M/Hawker/issues">Report Bug</a>
 </p>
 
 
@@ -34,7 +33,6 @@ In the next update, Hawker will become cleaner.
 
 ## How to Get Hawker+ (COMING SOON)
 
-- Hawker+ is not yet available, if you want to be notified when it arrives, join the discord : `https://discord.gg/KRjzDPzDbx`
 - Hawker+ is a more advanced version of the OSINT tool that provides access to large databases for investigative purposes. This tool is intended for law enforcement and cybersecurity professionals.
 
 To obtain the Hawker+ tool, please follow these steps:
