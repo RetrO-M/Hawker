@@ -17,7 +17,6 @@
 
 Hawker is an OSINT tool designed to assist law enforcement, cybersecurity professionals, and security researchers in conducting online investigations efficiently and legally by centralizing various sources of information to facilitate analysis and investigation.
 
-Join our Discord server : https://discord.gg/KRjzDPzDbx
 
 In the next update, Hawker will become cleaner.
 
@@ -37,7 +36,7 @@ In the next update, Hawker will become cleaner.
 
 To obtain the Hawker+ tool, please follow these steps:
 
-1. **Contact Me**: Reach out to me via Discord for further information and access to the tool.  Discord server is: `https://discord.gg/KRjzDPzDbx`.
+1. **Contact Me**: Contact me by email: `d3m3t0r_pro@protonmail.com`.
 2. **Make a Donation**: To support the development of this tool, a donation of **1 XMR (Monero)** is required. Please send the donation to the following Monero address: `455RrwkuryVRioADddHWfGXrWHSLk4n1DHX36E4tKkBHScps4CeFwMWVemyqgWkL5eYf5L2zRVkgQB4Y9dwaechDKqQzC7p`
 3. **Confirmation**: After completing the donation, send me the following:
    - The **transaction ID (txid)** of your Monero transaction.
